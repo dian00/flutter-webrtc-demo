@@ -1,15 +1,14 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_udid/flutter_udid.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc_demo/src/call_sample/random_string.dart';
 
 import '../utils/screen_select_dialog.dart';
-import 'random_string.dart';
 
-import '../utils/device_info.dart'
-    if (dart.library.js) '../utils/device_info_web.dart';
-import '../utils/websocket.dart'
-    if (dart.library.js) '../utils/websocket_web.dart';
+import '../utils/device_info.dart' if (dart.library.js) '../utils/device_info_web.dart';
+import '../utils/websocket.dart' if (dart.library.js) '../utils/websocket_web.dart';
 import '../utils/turn.dart' if (dart.library.js) '../utils/turn_web.dart';
 
 enum SignalingState {
@@ -45,7 +44,7 @@ class Signaling {
 
   JsonEncoder _encoder = JsonEncoder();
   JsonDecoder _decoder = JsonDecoder();
-  String _selfId = randomNumeric(6);
+  String? _selfId = randomNumeric(6);
   SimpleWebSocket? _socket;
   BuildContext? _context;
   var _host;
@@ -63,8 +62,7 @@ class Signaling {
   Function(Session session, MediaStream stream)? onAddRemoteStream;
   Function(Session session, MediaStream stream)? onRemoveRemoteStream;
   Function(dynamic event)? onPeersUpdate;
-  Function(Session session, RTCDataChannel dc, RTCDataChannelMessage data)?
-      onDataChannelMessage;
+  Function(Session session, RTCDataChannel dc, RTCDataChannelMessage data)? onDataChannelMessage;
   Function(Session session, RTCDataChannel dc)? onDataChannel;
 
   String get sdpSemantics => 'unified-plan';
@@ -93,7 +91,7 @@ class Signaling {
   final Map<String, dynamic> _dcConstraints = {
     'mandatory': {
       'OfferToReceiveAudio': true,
-      'OfferToReceiveVideo': false,
+      'OfferToReceiveVideo': true,
     },
     'optional': [],
   };
@@ -101,22 +99,6 @@ class Signaling {
   close() async {
     await _cleanSessions();
     _socket?.close();
-  }
-
-  void switchCamera() {
-    if (_localStream != null) {
-      if (_videoSource != VideoSource.Camera) {
-        _senders.forEach((sender) {
-          if (sender.track!.kind == 'video') {
-            sender.replaceTrack(_localStream!.getVideoTracks()[0]);
-          }
-        });
-        _videoSource = VideoSource.Camera;
-        onLocalStream?.call(_localStream!);
-      } else {
-        Helper.switchCamera(_localStream!.getVideoTracks()[0]);
-      }
-    }
   }
 
   void switchToScreenSharing(MediaStream stream) {
@@ -139,12 +121,8 @@ class Signaling {
   }
 
   void invite(String peerId, String media, bool useScreen) async {
-    var sessionId = _selfId + '-' + peerId;
-    Session session = await _createSession(null,
-        peerId: peerId,
-        sessionId: sessionId,
-        media: media,
-        screenSharing: useScreen);
+    var sessionId = _selfId! + '-' + peerId;
+    Session session = await _createSession(null, peerId: peerId, sessionId: sessionId, media: media, screenSharing: useScreen);
     _sessions[sessionId] = session;
     if (media == 'data') {
       _createDataChannel(session);
@@ -186,6 +164,10 @@ class Signaling {
     var data = mapData['data'];
 
     switch (mapData['type']) {
+      case 'assign':
+        List<dynamic> d = data;
+        _selfId = d[0];
+        break;
       case 'peers':
         {
           List<dynamic> peers = data;
@@ -204,14 +186,15 @@ class Signaling {
           var media = data['media'];
           var sessionId = data['session_id'];
           var session = _sessions[sessionId];
-          var newSession = await _createSession(session,
-              peerId: peerId,
-              sessionId: sessionId,
-              media: media,
-              screenSharing: false);
+          bool screenSharing = false;
+
+          if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) {
+            screenSharing = true;
+          }
+
+          var newSession = await _createSession(session, peerId: peerId, sessionId: sessionId, media: media, screenSharing: screenSharing);
           _sessions[sessionId] = newSession;
-          await newSession.pc?.setRemoteDescription(
-              RTCSessionDescription(description['sdp'], description['type']));
+          await newSession.pc?.setRemoteDescription(RTCSessionDescription(description['sdp'], description['type']));
           // await _createAnswer(newSession, media);
 
           if (newSession.remoteCandidates.length > 0) {
@@ -229,8 +212,7 @@ class Signaling {
           var description = data['description'];
           var sessionId = data['session_id'];
           var session = _sessions[sessionId];
-          session?.pc?.setRemoteDescription(
-              RTCSessionDescription(description['sdp'], description['type']));
+          session?.pc?.setRemoteDescription(RTCSessionDescription(description['sdp'], description['type']));
           onCallStateChange?.call(session!, CallState.CallStateConnected);
         }
         break;
@@ -240,8 +222,7 @@ class Signaling {
           var candidateMap = data['candidate'];
           var sessionId = data['session_id'];
           var session = _sessions[sessionId];
-          RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'],
-              candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
+          RTCIceCandidate candidate = RTCIceCandidate(candidateMap['candidate'], candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
 
           if (session != null) {
             if (session.pc != null) {
@@ -250,8 +231,7 @@ class Signaling {
               session.remoteCandidates.add(candidate);
             }
           } else {
-            _sessions[sessionId] = Session(pid: peerId, sid: sessionId)
-              ..remoteCandidates.add(candidate);
+            _sessions[sessionId] = Session(pid: peerId, sid: sessionId)..remoteCandidates.add(candidate);
           }
         }
         break;
@@ -300,11 +280,7 @@ class Signaling {
         */
         _iceServers = {
           'iceServers': [
-            {
-              'urls': _turnCredential['uris'][0],
-              'username': _turnCredential['username'],
-              'credential': _turnCredential['password']
-            },
+            {'urls': _turnCredential['uris'][0], 'username': _turnCredential['username'], 'credential': _turnCredential['password']},
           ]
         };
       } catch (e) {}
@@ -313,11 +289,7 @@ class Signaling {
     _socket?.onOpen = () {
       print('onOpen');
       onSignalingStateChange?.call(SignalingState.ConnectionOpen);
-      _send('new', {
-        'name': DeviceInfo.label,
-        'id': _selfId,
-        'user_agent': DeviceInfo.userAgent
-      });
+      if (WebRTC.platformIsDesktop) _send('new', {'name': DeviceInfo.label, 'id': _selfId, 'user_agent': DeviceInfo.userAgent});
     };
 
     _socket?.onMessage = (message) {
@@ -333,13 +305,12 @@ class Signaling {
     await _socket?.connect();
   }
 
-  Future<MediaStream> createStream(String media, bool userScreen,
-      {BuildContext? context}) async {
+  Future<MediaStream> createStream(String media, bool userScreen, {BuildContext? context}) async {
     final Map<String, dynamic> mediaConstraints = {
       'audio': userScreen ? false : true,
       'video': WebRTC.platformIsIOS
           ? {'deviceId': 'broadcast'}
-          : WebRTC.platformIsWeb
+          : WebRTC.platformIsWeb || WebRTC.platformIsDesktop
               ? false
               : userScreen
                   ? true
@@ -370,7 +341,7 @@ class Signaling {
         });
       } else {
         stream = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
-        var audioStream = await navigator.mediaDevices.getUserMedia({'audio': true, 'video': false});
+        var audioStream = await navigator.mediaDevices.getUserMedia({'audio': true, 'video': true});
         audioStream.getAudioTracks().forEach((element) {
           stream.addTrack(element);
         });
@@ -391,9 +362,7 @@ class Signaling {
     required bool screenSharing,
   }) async {
     var newSession = session ?? Session(sid: sessionId, pid: peerId);
-    if (media != 'data')
-      _localStream =
-          await createStream(media, screenSharing, context: _context);
+    if (media != 'data') _localStream = await createStream(media, screenSharing, context: _context);
     print(_iceServers);
     RTCPeerConnection pc = await createPeerConnection({
       ..._iceServers,
@@ -513,19 +482,22 @@ class Signaling {
     onDataChannel?.call(session, channel);
   }
 
-  Future<void> _createDataChannel(Session session,
-      {label: 'fileTransfer'}) async {
-    RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
-      ..maxRetransmits = 30;
-    RTCDataChannel channel =
-        await session.pc!.createDataChannel(label, dataChannelDict);
+  Future<void> _createDataChannel(Session session, {label: 'fileTransfer'}) async {
+    RTCDataChannelInit dataChannelDict = RTCDataChannelInit()..maxRetransmits = 30;
+    RTCDataChannel channel = await session.pc!.createDataChannel(label, dataChannelDict);
     _addDataChannel(session, channel);
+  }
+
+  Future<void> createNew(String? selfId) async {
+    print("createNew");
+    String udid = await FlutterUdid.consistentUdid;
+    _selfId = selfId;
+    _send('new', {'name': DeviceInfo.label, 'id': selfId, 'udid': udid, 'user_agent': DeviceInfo.userAgent});
   }
 
   Future<void> _createOffer(Session session, String media) async {
     try {
-      RTCSessionDescription s =
-          await session.pc!.createOffer(media == 'data' ? _dcConstraints : {});
+      RTCSessionDescription s = await session.pc!.createOffer(media == 'data' ? _dcConstraints : {});
       await session.pc!.setLocalDescription(_fixSdp(s));
       _send('offer', {
         'to': session.pid,
@@ -541,15 +513,13 @@ class Signaling {
 
   RTCSessionDescription _fixSdp(RTCSessionDescription s) {
     var sdp = s.sdp;
-    s.sdp =
-        sdp!.replaceAll('profile-level-id=640c1f', 'profile-level-id=42e032');
+    s.sdp = sdp!.replaceAll('profile-level-id=640c1f', 'profile-level-id=42e032');
     return s;
   }
 
   Future<void> _createAnswer(Session session, String media) async {
     try {
-      RTCSessionDescription s =
-          await session.pc!.createAnswer(media == 'data' ? _dcConstraints : {});
+      RTCSessionDescription s = await session.pc!.createAnswer(media == 'data' ? _dcConstraints : {});
       await session.pc!.setLocalDescription(_fixSdp(s));
       _send('answer', {
         'to': session.pid,

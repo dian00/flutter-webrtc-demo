@@ -1,0 +1,118 @@
+{
+  "project_info": {
+    "project_number": "988951600645",
+    "project_id": "ttgo-development",
+    "storage_bucket": "ttgo-development.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:988951600645:android:2bf6d2570eeb6cae35066c",
+        "android_client_info": {
+          "package_name": "com.cloudwebrtc.flutterwebrtcdemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "988951600645-938gudn2pf7jevcarjuf6plj2189o03p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZJwFpVnPdrOOyfYo1Penwi6eVDdmEvZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "988951600645-938gudn2pf7jevcarjuf6plj2189o03p.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "988951600645-3v81lioi86vtv2ejc3fj61cu79p803ne.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.winehouse.ttgo.dev"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:988951600645:android:ccdf11c8d9c5d8ea35066c",
+        "android_client_info": {
+          "package_name": "io.winehouse.ttgo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "988951600645-938gudn2pf7jevcarjuf6plj2189o03p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZJwFpVnPdrOOyfYo1Penwi6eVDdmEvZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "988951600645-938gudn2pf7jevcarjuf6plj2189o03p.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "988951600645-3v81lioi86vtv2ejc3fj61cu79p803ne.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.winehouse.ttgo.dev"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:988951600645:android:d0d8fa61a5bf6eb535066c",
+        "android_client_info": {
+          "package_name": "io.winehouse.ttgo.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "988951600645-938gudn2pf7jevcarjuf6plj2189o03p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZJwFpVnPdrOOyfYo1Penwi6eVDdmEvZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "988951600645-938gudn2pf7jevcarjuf6plj2189o03p.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "988951600645-3v81lioi86vtv2ejc3fj61cu79p803ne.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.winehouse.ttgo.dev"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

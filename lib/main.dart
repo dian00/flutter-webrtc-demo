@@ -1,139 +1,42 @@
 import 'dart:core';
+import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_webrtc_demo/src/bloc/webrtc_bloc.dart';
+import 'package:flutter_webrtc_demo/src/main_screen.dart';
+import 'firebase_options.dart';
 
-import 'src/call_sample/call_sample.dart';
-import 'src/call_sample/data_channel_sample.dart';
-import 'src/route_item.dart';
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() => runApp(new MyApp());
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => new _MyAppState();
+  PendingDynamicLinkData? initLink;
+  if (Platform.isAndroid || Platform.isIOS) initLink = await FirebaseDynamicLinks.instance.getInitialLink();
+
+  FirebaseDynamicLinks.instance.onLink.listen((linkData) {
+    print('onLink: ${linkData.link}');
+  }).onError((error) {
+    print('onLinkError: $error');
+  });
+
+  runApp(BlocProvider(lazy: false, create: (_) => WebRTCCSBloc(), child: MyApp(link: initLink)));
 }
 
-enum DialogDemoAction {
-  cancel,
-  connect,
-}
+class MyApp extends StatelessWidget {
+  final PendingDynamicLinkData? link;
 
-class _MyAppState extends State<MyApp> {
-  List<RouteItem> items = [];
-  String _server = '';
-  late SharedPreferences _prefs;
-
-  bool _datachannel = false;
-  @override
-  initState() {
-    super.initState();
-    _initData();
-    _initItems();
-  }
-
-  _buildRow(context, item) {
-    return ListBody(children: <Widget>[
-      ListTile(
-        title: Text(item.title),
-        onTap: () => item.push(context),
-        trailing: Icon(Icons.arrow_right),
-      ),
-      Divider()
-    ]);
-  }
+  const MyApp({this.link});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-          appBar: AppBar(
-            title: Text('Flutter-WebRTC example'),
-          ),
-          body: ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(0.0),
-              itemCount: items.length,
-              itemBuilder: (context, i) {
-                return _buildRow(context, items[i]);
-              })),
+      home: MainScreen(link: link),
     );
   }
-
-  _initData() async {
-    _prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _server = _prefs.getString('server') ?? 'demo.cloudwebrtc.com';
-    });
-  }
-
-  void showDemoDialog<T>(
-      {required BuildContext context, required Widget child}) {
-    showDialog<T>(
-      context: context,
-      builder: (BuildContext context) => child,
-    ).then<void>((T? value) {
-      // The value passed to Navigator.pop() or null.
-      if (value != null) {
-        if (value == DialogDemoAction.connect) {
-          _prefs.setString('server', _server);
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (BuildContext context) => _datachannel
-                      ? DataChannelSample(host: _server)
-                      : CallSample(host: _server)));
-        }
-      }
-    });
-  }
-
-  _showAddressDialog(context) {
-    showDemoDialog<DialogDemoAction>(
-        context: context,
-        child: AlertDialog(
-            title: const Text('Enter server address:'),
-            content: TextField(
-              onChanged: (String text) {
-                setState(() {
-                  _server = text;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: _server,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            actions: <Widget>[
-              TextButton(
-                  child: const Text('CANCEL'),
-                  onPressed: () {
-                    Navigator.pop(context, DialogDemoAction.cancel);
-                  }),
-              TextButton(
-                  child: const Text('CONNECT'),
-                  onPressed: () {
-                    Navigator.pop(context, DialogDemoAction.connect);
-                  })
-            ]));
-  }
-
-  _initItems() {
-    items = <RouteItem>[
-      RouteItem(
-          title: 'P2P Call Sample',
-          subtitle: 'P2P Call Sample.',
-          push: (BuildContext context) {
-            _datachannel = false;
-            _showAddressDialog(context);
-          }),
-      RouteItem(
-          title: 'Data Channel Sample',
-          subtitle: 'P2P Data Channel.',
-          push: (BuildContext context) {
-            _datachannel = true;
-            _showAddressDialog(context);
-          }),
-    ];
-  }
 }
+
+const String ttgoWebRTCServer = "demo.cloudwebrtc.com";
