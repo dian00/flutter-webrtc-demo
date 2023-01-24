@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_webrtc_demo/src/bloc/webrtc_bloc.dart';
 import 'package:flutter_webrtc_demo/src/bloc/webrtc_event.dart';
@@ -13,6 +14,7 @@ class CSPopup extends StatefulWidget {
 class _CSPopupState extends State<CSPopup> {
   @override
   void initState() {
+    print('initState');
     super.initState();
     BlocProvider.of<WebRTCCSBloc>(context).add(Init(type: WebRTCType.cs, peerId: null));
   }
@@ -38,7 +40,7 @@ class _CSPopupState extends State<CSPopup> {
                     TextButton(
                       child: Text("Cancel"),
                       onPressed: () {
-                        //
+                        BlocProvider.of<WebRTCCSBloc>(context).add(HangUp());
                         Navigator.of(context).pop();
                       },
                     ),
@@ -46,12 +48,20 @@ class _CSPopupState extends State<CSPopup> {
                 );
               } else if (state is ConnectionOpened) {
                 return AlertDialog(
-                  content: Text("Your ID: ${state.selfId}"),
+                  content: Row(children: [
+                    Text("cs link : ${state.selfId}"),
+                    IconButton(
+                        icon: const Icon(Icons.copy),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: state.selfId));
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Coppied to your clipboard !")));
+                        })
+                  ]),
                   actions: <Widget>[
                     TextButton(
                       child: Text("Cancel"),
                       onPressed: () {
-                        //
+                        BlocProvider.of<WebRTCCSBloc>(context).add(HangUp());
                         Navigator.of(context).pop();
                       },
                     ),
@@ -68,8 +78,8 @@ class _CSPopupState extends State<CSPopup> {
                         style: TextStyle(color: Colors.red),
                       ),
                       onPressed: () {
-                        Navigator.of(context).pop();
                         BlocProvider.of<WebRTCCSBloc>(context).add(Reject());
+                        Navigator.of(context).pop();
                       },
                     ),
                     MaterialButton(
@@ -79,8 +89,7 @@ class _CSPopupState extends State<CSPopup> {
                       ),
                       onPressed: () {
                         BlocProvider.of<WebRTCCSBloc>(context).add(Accept());
-                        Navigator.of(context).pop();
-                        // Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => CallScreen()));
+                        // Navigator.of(context).pop();
                       },
                     ),
                   ],
@@ -93,7 +102,6 @@ class _CSPopupState extends State<CSPopup> {
                   TextButton(
                     child: Text("Cancel"),
                     onPressed: () {
-                      //
                       Navigator.of(context).pop();
                     },
                   ),

@@ -15,24 +15,27 @@ class WebRTCCSBloc extends Bloc<WebRTCCSEvent, WebRTCCSState> {
 
   WebRTCType _type = WebRTCType.cs;
 
-  RTCVideoRenderer _localRenderer = RTCVideoRenderer();
-  RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+  RTCVideoRenderer? _localRenderer;
+  RTCVideoRenderer? _remoteRenderer;
 
-  WebRTCCSBloc() : super(WebRTCCSInitial());
+  WebRTCCSBloc(WebRTCCSState initialState) : super(initialState);
 
   @override
   Stream<WebRTCCSState> mapEventToState(WebRTCCSEvent event) async* {
+    print('mapEventToState :: ${event.toString()}');
     if (event is Init) {
+      yield WebRTCCSInitial();
       _type = event.type;
       await initRenderers();
       yield* _connect(_selfId, event.peerId);
     } else if (event is Accept) {
       _accept();
-      yield InCalling(_localRenderer, _remoteRenderer);
+      yield InCalling(_localRenderer!, _remoteRenderer!);
     } else if (event is Reject) {
       _reject();
     } else if (event is HangUp) {
       _hangUp();
+      _deactiveSignaling();
     } else if (event is MuteMic) {
       _muteMic();
     } else if (event is RequestAccept) {
@@ -51,30 +54,35 @@ class WebRTCCSBloc extends Bloc<WebRTCCSEvent, WebRTCCSState> {
           _session = event.session;
           break;
         case CallState.CallStateRinging:
-          yield Ringing();
+          // yield Ringing();
+          _accept();
+          yield InCalling(_localRenderer!, _remoteRenderer!);
           break;
         case CallState.CallStateBye:
           yield EndedCall();
-          _localRenderer.srcObject = null;
-          _remoteRenderer.srcObject = null;
+          _localRenderer!.srcObject = null;
+          _remoteRenderer!.srcObject = null;
           _session = null;
           break;
         case CallState.CallStateInvite:
           add(RequestAccept());
           break;
         case CallState.CallStateConnected:
-          yield InCalling(_localRenderer, _remoteRenderer);
+          yield InCalling(_localRenderer!, _remoteRenderer!);
           break;
       }
     }
   }
 
   initRenderers() async {
-    await _localRenderer.initialize();
-    await _remoteRenderer.initialize();
+    _localRenderer = RTCVideoRenderer();
+    _remoteRenderer = RTCVideoRenderer();
+    await _localRenderer?.initialize();
+    await _remoteRenderer?.initialize();
   }
 
   Stream<WebRTCCSState> _connect(String? selfId, String? peerId) async* {
+    print('_connect : $selfId, $peerId');
     _signaling ??= Signaling(ttgoWebRTCServer, null)..connect();
     _signaling?.onSignalingStateChange = (SignalingState state) async {
       print("onSignalingStateChange: ${state.name}");
@@ -97,15 +105,15 @@ class WebRTCCSBloc extends Bloc<WebRTCCSEvent, WebRTCCSState> {
     };
 
     _signaling?.onLocalStream = ((stream) {
-      _localRenderer.srcObject = stream;
+      _localRenderer?.srcObject = stream;
     });
 
     _signaling?.onAddRemoteStream = ((_, stream) {
-      _remoteRenderer.srcObject = stream;
+      _remoteRenderer?.srcObject = stream;
     });
 
     _signaling?.onRemoveRemoteStream = ((_, stream) {
-      _remoteRenderer.srcObject = null;
+      _remoteRenderer?.srcObject = null;
     });
   }
 
@@ -130,7 +138,6 @@ class WebRTCCSBloc extends Bloc<WebRTCCSEvent, WebRTCCSState> {
   _hangUp() async {
     if (_session != null) {
       _signaling?.bye(_session!.sid);
-      // await stopForegroundService();
     }
   }
 
@@ -138,5 +145,12 @@ class WebRTCCSBloc extends Bloc<WebRTCCSEvent, WebRTCCSState> {
     if (_session != null) {
       _signaling?.muteMic();
     }
+  }
+
+  _deactiveSignaling() {
+    _signaling?.close();
+    _signaling = null;
+    _localRenderer?.dispose();
+    _remoteRenderer?.dispose();
   }
 }

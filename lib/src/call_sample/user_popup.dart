@@ -30,6 +30,8 @@ class _UserPopupState extends State<UserPopup> {
               context,
               MaterialPageRoute(
                   builder: (BuildContext context) => CallScreen(localRenderer: state.localRenderer, remoteRenderer: state.remoteRenderer)));
+        } else if (state is EndedCall) {
+          Navigator.of(context).pop();
         }
       },
       child: BlocBuilder<WebRTCCSBloc, WebRTCCSState>(

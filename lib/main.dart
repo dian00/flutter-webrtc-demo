@@ -6,6 +6,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_webrtc_demo/src/bloc/webrtc_bloc.dart';
+import 'package:flutter_webrtc_demo/src/bloc/webrtc_state.dart';
 import 'package:flutter_webrtc_demo/src/main_screen.dart';
 import 'firebase_options.dart';
 
@@ -23,7 +24,7 @@ Future<void> main() async {
     print('onLinkError: $error');
   });
 
-  runApp(BlocProvider(lazy: false, create: (_) => WebRTCCSBloc(), child: MyApp(link: initLink)));
+  runApp(BlocProvider(lazy: false, create: (_) => WebRTCCSBloc(WebRTCCSInitial()), child: MyApp(link: initLink)));
 }
 
 class MyApp extends StatelessWidget {

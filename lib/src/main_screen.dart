@@ -76,15 +76,12 @@ class _MainScreenState extends State<MainScreen> {
           subtitle: 'P2P Call Sample.',
           push: (BuildContext context) {
             showDialog(context: context, builder: ((context) => UserPopup(peerId: "1234")));
-            // Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => CallScreen()));
           }),
       RouteItem(
           title: 'Customer Service (For CS) 2',
           subtitle: 'P2P Call Sample.',
           push: (BuildContext context) {
             showDialog(context: context, builder: ((context) => CSPopup()));
-
-            // Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => CallScreen()));
           }),
     ];
   }

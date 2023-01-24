@@ -5,6 +5,8 @@ import 'package:flutter_webrtc_demo/src/bloc/webrtc_bloc.dart';
 import 'package:flutter_webrtc_demo/src/bloc/webrtc_event.dart';
 import 'dart:core';
 
+import 'package:flutter_webrtc_demo/src/bloc/webrtc_state.dart';
+
 class CallScreen extends StatefulWidget {
   final RTCVideoRenderer localRenderer;
   final RTCVideoRenderer remoteRenderer;
@@ -29,7 +31,13 @@ class _CallScreenState extends State<CallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<WebRTCCSBloc, WebRTCCSState>(
+      listener: (context, state) {
+        if (state is EndedCall) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
           title: Text((_selfId != null ? '[ Your ID : $_selfId ]' : 'Call Sample')),
@@ -72,6 +80,8 @@ class _CallScreenState extends State<CallScreen> {
                   )),
             ]),
           );
-        }));
+        }),
+      ),
+    );
   }
 }
