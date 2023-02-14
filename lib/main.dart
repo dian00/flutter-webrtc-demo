@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:flutter_webrtc_demo/src/bloc/webrtc_bloc.dart';
 import 'package:flutter_webrtc_demo/src/bloc/webrtc_state.dart';
 import 'package:flutter_webrtc_demo/src/main_screen.dart';
@@ -16,7 +17,7 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   PendingDynamicLinkData? initLink;
-  if (Platform.isAndroid || Platform.isIOS) initLink = await FirebaseDynamicLinks.instance.getInitialLink();
+  if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) initLink = await FirebaseDynamicLinks.instance.getInitialLink();
 
   FirebaseDynamicLinks.instance.onLink.listen((linkData) {
     print('onLink: ${linkData.link}');
@@ -40,4 +41,4 @@ class MyApp extends StatelessWidget {
   }
 }
 
-const String ttgoWebRTCServer = "demo.cloudwebrtc.com";
+const String ttgoWebRTCServer = "13.215.155.54";

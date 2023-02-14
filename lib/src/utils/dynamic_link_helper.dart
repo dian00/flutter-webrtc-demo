@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 class DynamicLinkHelper {
   static Future<String>? buildDynamicLinks(String selfId) async {
+    print("[DynamicLinkHelper] buildDynamicLinks: selfId => $selfId");
     var urlToReturn;
     final String postUrl = 'https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${DefaultFirebaseOptions.web.apiKey}';
     String theUrl = "https://winehouse.page.link/webrtc/?peerId=$selfId";
@@ -18,11 +19,11 @@ class DynamicLinkHelper {
                 'domainUriPrefix': 'https://winehouse.page.link',
                 'link': theUrl,
                 'androidInfo': {
-                  'androidPackageName': 'com.cloudwebrtc.flutterwebrtcdemo',
+                  'androidPackageName': 'io.winehouse.ttgo',
                   'androidFallbackLink': theUrl,
                 },
                 'iosInfo': {
-                  'iosBundleId': 'com.cloudwebrtc.flutterwebrtcdemo',
+                  'iosBundleId': 'io.winehouse.ttgo',
                   'iosFallbackLink': theUrl,
                 },
               },
