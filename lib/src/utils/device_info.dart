@@ -7,6 +7,6 @@ class DeviceInfo {
 
   static String get userAgent {
     // ttgo version
-    return 'ttgo-user/' + Platform.operatingSystem + '-plugin 0.0.1';
+    return 'flutter-webrtc/' + Platform.operatingSystem + '-plugin 0.0.1';
   }
 }

@@ -8,17 +8,16 @@ import 'dart:core';
 import 'package:flutter_webrtc_demo/src/bloc/webrtc_state.dart';
 
 class CallScreen extends StatefulWidget {
+  final bool user;
   final RTCVideoRenderer localRenderer;
   final RTCVideoRenderer remoteRenderer;
 
-  const CallScreen({required this.localRenderer, required this.remoteRenderer});
+  const CallScreen({required this.user, required this.localRenderer, required this.remoteRenderer});
   @override
   _CallScreenState createState() => _CallScreenState();
 }
 
 class _CallScreenState extends State<CallScreen> {
-  String? _selfId;
-
   @override
   initState() {
     super.initState();
@@ -40,7 +39,8 @@ class _CallScreenState extends State<CallScreen> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text((_selfId != null ? '[ Your ID : $_selfId ]' : 'Call Sample')),
+          title: Text(('WebRTC Demo')),
+          automaticallyImplyLeading: false,
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: SizedBox(
@@ -49,7 +49,6 @@ class _CallScreenState extends State<CallScreen> {
               FloatingActionButton(
                 onPressed: () {
                   BlocProvider.of<WebRTCCSBloc>(context).add(HangUp());
-                  Navigator.pop(context);
                 }, //_hangUp,
                 tooltip: 'Hangup',
                 child: Icon(Icons.call_end),
@@ -65,20 +64,24 @@ class _CallScreenState extends State<CallScreen> {
             ])),
         body: OrientationBuilder(builder: (context, orientation) {
           return Container(
-            child: Stack(children: <Widget>[
-              Positioned(
-                  left: 0.0,
-                  right: 0.0,
-                  top: 0.0,
-                  bottom: 0.0,
-                  child: Container(
-                    margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
-                    child: RTCVideoView(widget.remoteRenderer),
-                    decoration: BoxDecoration(color: Colors.black54),
-                  )),
-            ]),
+            child: widget.user
+                ? Center(
+                    child: Text("Connected CS ! "),
+                  )
+                : Stack(children: <Widget>[
+                    Positioned(
+                        left: 0.0,
+                        right: 0.0,
+                        top: 0.0,
+                        bottom: 0.0,
+                        child: Container(
+                          margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height,
+                          child: RTCVideoView(widget.remoteRenderer),
+                          decoration: BoxDecoration(color: Colors.black54),
+                        )),
+                  ]),
           );
         }),
       ),

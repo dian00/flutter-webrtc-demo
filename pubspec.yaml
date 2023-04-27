@@ -23,7 +23,7 @@ dependencies:
   equatable: ^2.0.0
   firebase_dynamic_links: ^5.0.11
   firebase_core: ^2.4.1
-  flutter_new_foreground_task: ^1.0.1
+  flutter_background: ^1.2.0
 
 dev_dependencies:
   flutter_test:

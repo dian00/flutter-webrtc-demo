@@ -1,15 +1,12 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:flutter_webrtc_demo/main.dart';
-import 'package:flutter_webrtc_demo/src/call_sample/user_popup.dart';
 import 'package:flutter_webrtc_demo/src/route_item.dart';
 
 import 'call_sample/cs_popup.dart';
 
 class MainScreen extends StatefulWidget {
-  final PendingDynamicLinkData? link;
-
-  const MainScreen({required this.link});
   @override
   _MainScreenState createState() => new _MainScreenState();
 }
@@ -21,24 +18,10 @@ enum DialogDemoAction {
 
 class _MainScreenState extends State<MainScreen> {
   List<RouteItem> items = [];
-  String _server = ttgoWebRTCServer;
 
   @override
   initState() {
     super.initState();
-
-    if (widget.link != null) {
-      final Uri? deepLink = widget.link!.link;
-      if (deepLink != null) {
-        print("deepLink: ${deepLink.toString()}");
-        final String? peerId = deepLink.queryParameters["peerId"];
-        print('peerId = $peerId');
-        Future.delayed(Duration.zero, () {
-          showDialog(context: context, builder: ((context) => UserPopup(peerId: peerId)));
-        });
-      }
-    }
-    // _initData();
     _initItems();
   }
 
@@ -57,29 +40,24 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ttgo-WebRTC Sample'),
+        title: Text('ttgo-WebRTC Demo'),
       ),
-      body: ListView.builder(
-          shrinkWrap: true,
-          padding: const EdgeInsets.all(0.0),
-          itemCount: items.length,
-          itemBuilder: (context, i) {
-            return _buildRow(context, items[i]);
-          }),
+      body: WebRTC.platformIsAndroid || WebRTC.platformIsIOS
+          ? Center(child: Text("Waiting for WebRTC connection..."))
+          : ListView.builder(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(0.0),
+              itemCount: items.length,
+              itemBuilder: (context, i) {
+                return _buildRow(context, items[i]);
+              }),
     );
   }
 
   _initItems() {
     items = <RouteItem>[
       RouteItem(
-          title: 'Customer Service (For User) 1',
-          subtitle: 'P2P Call Sample.',
-          push: (BuildContext context) {
-            showDialog(context: context, builder: ((context) => UserPopup(peerId: "1234")));
-          }),
-      RouteItem(
-          title: 'Customer Service (For CS) 2',
-          subtitle: 'P2P Call Sample.',
+          title: 'CS DEMO (MENU FOR CS)',
           push: (BuildContext context) {
             showDialog(context: context, builder: ((context) => CSPopup()));
           }),

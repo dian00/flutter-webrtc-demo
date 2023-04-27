@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc_demo/src/call_sample/signaling.dart';
 
 enum WebRTCType { cs, user }
@@ -7,7 +8,8 @@ abstract class WebRTCCSEvent {}
 class Init extends WebRTCCSEvent {
   final String? peerId;
   final WebRTCType type;
-  Init({required this.type, required this.peerId});
+  final BuildContext context;
+  Init(this.context, {required this.type, required this.peerId});
 }
 
 class New extends WebRTCCSEvent {

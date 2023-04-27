@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_udid/flutter_udid.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:flutter_webrtc_demo/src/bloc/webrtc_state.dart';
 import 'package:flutter_webrtc_demo/src/call_sample/random_string.dart';
 
 import '../utils/screen_select_dialog.dart';
@@ -133,6 +134,7 @@ class Signaling {
   }
 
   void bye(String sessionId) {
+    print("bye: " + sessionId);
     _send('bye', {
       'session_id': sessionId,
       'from': _selfId,
@@ -310,7 +312,7 @@ class Signaling {
       'audio': userScreen ? false : true,
       'video': WebRTC.platformIsIOS
           ? {'deviceId': 'broadcast'}
-          : WebRTC.platformIsWeb || WebRTC.platformIsDesktop
+          : WebRTC.platformIsWeb || WebRTC.platformIsDesktop || WebRTC.platformIsMacOS
               ? false
               : userScreen
                   ? true
@@ -347,6 +349,7 @@ class Signaling {
         });
       }
     } else {
+      print("mediaConstraints: $mediaConstraints");
       stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
     }
 
@@ -489,8 +492,10 @@ class Signaling {
   }
 
   Future<void> createNew(String? selfId) async {
-    print("createNew");
-    String udid = await FlutterUdid.consistentUdid;
+    print("createNew :: $selfId");
+    String? udid;
+    if (WebRTC.platformIsWeb == false) udid = await FlutterUdid.consistentUdid;
+
     _selfId = selfId;
     _send('new', {'name': DeviceInfo.label, 'id': selfId, 'udid': udid, 'user_agent': DeviceInfo.userAgent});
   }

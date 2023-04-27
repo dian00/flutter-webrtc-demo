@@ -1,5 +1,4 @@
 import 'dart:core';
-import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -15,30 +14,16 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  PendingDynamicLinkData? initLink;
-  if (WebRTC.platformIsAndroid || WebRTC.platformIsIOS) initLink = await FirebaseDynamicLinks.instance.getInitialLink();
-
-  FirebaseDynamicLinks.instance.onLink.listen((linkData) {
-    print('onLink: ${linkData.link}');
-  }).onError((error) {
-    print('onLinkError: $error');
-  });
-
-  runApp(BlocProvider(lazy: false, create: (_) => WebRTCCSBloc(WebRTCCSInitial()), child: MyApp(link: initLink)));
+  runApp(BlocProvider(lazy: false, create: (_) => WebRTCCSBloc(WebRTCCSInitial()), child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
-  final PendingDynamicLinkData? link;
-
-  const MyApp({this.link});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MainScreen(link: link),
+      home: MainScreen(),
     );
   }
 }
 
-const String ttgoWebRTCServer = "13.215.155.54";
+final String ttgoWebRTCServer = "ttgo.dev";
